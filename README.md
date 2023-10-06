@@ -1,2 +1,1 @@
-# Gyakorlat_flutter
-szakmai gyakorlat frontend
+# Futtasd a backendet localhoston
