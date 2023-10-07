@@ -29,7 +29,7 @@ class EditableTable extends StatefulWidget {
 
 class _EditableTableState extends State<EditableTable> {
   final double fontSizeForColumns = 24;
-  final List<String> roleOptions = ['10', '20', '100'];
+  final List<String> roleOptions = ['10', '20'];
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,10 @@ class _EditableTableState extends State<EditableTable> {
         columns: tableData[0].keys.map((String column) {
           return DataColumn(
             label: Text(
-              column == 'accountId' ? 'ID' : (column == 'pin' ? 'Password' : column),
+              column == 'accountId' ? 'ID' : 
+                (column == 'pin' ? 'Password' : 
+                (column == 'username' ? 'Username' : 
+                (column == 'role' ? 'Role' : column))),
               style: TextStyle(
                 fontSize: column == 'ID' ||
                         column == 'username' ||
