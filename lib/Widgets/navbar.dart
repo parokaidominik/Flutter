@@ -41,30 +41,19 @@ class _NavBarState extends State<NavBar> {
   Widget DesktopNavBar(){
     return Container(
       color: Colors.blueGrey,
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       height: 70,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          navLogo(),
           Row(
             children: [
-              navButton('Jelszó módosítás'),
-              navButton('Felhasználó készítés'),
-              navButton('Hiba bejelentés'),
-              navButton('Mittomen'),
-
+              Text("User-management", 
+              style: TextStyle(
+                fontSize: 40,
+                color: Colors.amber,
+              ),),
             ],
           ),
-          Container(
-            height: 45,
-            child: ElevatedButton(
-              style: borderedButtonStyle,
-              onPressed: (){},
-              child: Text('Logout',
-              style: TextStyle(color: AppColors.primary),),
-            ),
-          )
       ]),
     );
   }

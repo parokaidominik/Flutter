@@ -19,6 +19,9 @@ List<Map<String, dynamic>> tableData = [];
 
 //----------------------EDITABLE TABLE (ID, USERNAME, PASSWORD, ROLE)--------------------------
 
+// Define a bool variable to track the editable state
+bool isEditingEnabled = true;
+
 class EditableTable extends StatefulWidget {
   @override
   _EditableTableState createState() => _EditableTableState();
@@ -50,6 +53,8 @@ class _EditableTableState extends State<EditableTable> {
           );
         }).toList(),
         rows: tableData.map((Map<String, dynamic> row) {
+
+          //---------------------ID---------------------
           return DataRow(
             cells: row.keys.map((String cell) {
               if (cell == 'ID') {
@@ -63,6 +68,8 @@ class _EditableTableState extends State<EditableTable> {
                   ),
                 );
               } else if (cell == 'role') {
+
+                //---------------------ROLE---------------------
                 return DataCell(
                   DropdownButton<String>(
                     value: row[cell].toString(),
@@ -72,16 +79,20 @@ class _EditableTableState extends State<EditableTable> {
                         child: Text(option),
                       );
                     }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        row[cell] = value!;
-                      });
-                    },
+                    onChanged: isEditingEnabled
+                        ? (value) {
+                            setState(() {
+                              row[cell] = value!;
+                            });
+                          }
+                        : null,
                   ),
                 );
               } else {
+                //---------------------USER, PASSWORD---------------------
                 return DataCell(
                   TextFormField(
+                    readOnly: !isEditingEnabled,
                     initialValue: row[cell].toString(), 
                     onChanged: (value) {
                       setState(() {
@@ -156,7 +167,21 @@ class _Container1State extends State<Container1> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  )
+                  ),
+                  // Add a button to toggle editing
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          isEditingEnabled = !isEditingEnabled; // Toggle the editable state
+                        });
+                      },
+                        child: Text(
+                          isEditingEnabled ? 'Disable Editing' : 'Enable Editing',
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                        ),
+                      )
                 ],
               ),
             ),
@@ -168,9 +193,37 @@ class _Container1State extends State<Container1> {
 
 //----------------------SAVE BUTTON--------------------------
 
-  void saveChanges() {
-    print("Data saved");
+void saveChanges() async {
+  for (var row in tableData) {
+    final int accountId = row['ID']; // Assuming 'ID' is the unique identifier
+    final Map<String, dynamic> updatedData = {
+      'accountId': accountId, // Include the unique identifier
+      'username': row['username'],
+      'pin': row['Password'],
+      'role': row['role'],
+    };
+
+    final String apiUrl = 'http://localhost:8080/api/v1/account/$accountId'; // Construct the API URL
+
+    try {
+      final response = await http.put(
+        Uri.parse(apiUrl),
+        body: jsonEncode(updatedData),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        print('Data for account $accountId updated successfully.');
+      } else {
+        // Handle HTTP error status codes
+        print('Failed to update data for account $accountId. HTTP Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle other exceptions (e.g., network issues, parsing errors)
+      print('Error updating data for account $accountId: $e');
+    }
   }
+}
 
 //----------------------DATA FETCH FROM BACKEND--------------------------
 
