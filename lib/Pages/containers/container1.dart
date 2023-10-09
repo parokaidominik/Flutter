@@ -58,7 +58,6 @@ class _EditableTableState extends State<EditableTable> {
           );
         }).toList(),
         rows: tableData.asMap().entries.map((entry) {
-          final int index = entry.key;
           final Map<String, dynamic> row = entry.value;
 
           //---------------------ID---------------------
