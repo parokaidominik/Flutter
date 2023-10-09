@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, non_constant_identifier_names
+// ignore_for_file: prefer_const_constructors, non_constant_identifier_names, avoid_print, prefer_const_declarations, avoid_unnecessary_containers, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api
 
 import 'package:app_test/Utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,6 @@ List<Map<String, dynamic>> tableData = [];
 
 //----------------------EDITABLE TABLE (ID, USERNAME, PASSWORD, ROLE)--------------------------
 
-// Define a bool variable to track the editable state
 bool isEditingEnabled = true;
 
 class EditableTable extends StatefulWidget {
@@ -35,9 +34,11 @@ class _EditableTableState extends State<EditableTable> {
   final double fontSizeForColumns = 24;
   final List<String> roleOptions = ['10', '20', 'User', 'Engineer'];
 
+
+//----------------------DATA TABLE--------------------------
+
   @override
   Widget build(BuildContext context) {
-    // Check if there is at least one row of data
     if (tableData.isNotEmpty) {
       return DataTable(
         columns: tableData[0].keys.map((String column) {
@@ -97,7 +98,7 @@ class _EditableTableState extends State<EditableTable> {
 
                       //--------------------- DELETE ACCOUNT----------------------
                       Container(
-                      margin: EdgeInsets.only(left: 75),
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
                         child: IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: isEditingEnabled
@@ -172,6 +173,7 @@ Widget DesktopContainer1() {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  //----------------------SAVE BUTTON--------------------------
                   ElevatedButton(
                     onPressed: () {
                       saveChanges();
@@ -189,7 +191,7 @@ Widget DesktopContainer1() {
                       ),
                     ),
                   ),
-                  // Add a button to toggle editing
+                  //----------------------EDITING BUTTON--------------------------
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
@@ -212,11 +214,11 @@ Widget DesktopContainer1() {
     );
   }
 
-//----------------------SAVE BUTTON--------------------------
+//----------------------SAVE CHANGES--------------------------
 
 void saveChanges() async {
   for (var row in tableData) {
-    final int accountId = row['ID']; // Assuming 'ID' is the unique identifier
+    final int accountId = row['ID'];
     final String username = row['Username'];
     final String pin = row['Password'];
     final String role = row['Role'];
@@ -225,7 +227,7 @@ void saveChanges() async {
   }
 }
 
-//---------------------UPDATE ACCOUNT----------------------------------
+//---------------------UPDATE ACCOUNT IN BACKEND----------------------------------
 
 Future<void> updateAccount(int accountId, String username, String pin, String role) async {
   final String apiUrl = 'http://localhost:8080/api/v1/account/update'; // Replace with your API endpoint
