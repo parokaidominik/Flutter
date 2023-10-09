@@ -23,13 +23,17 @@ List<Map<String, dynamic>> tableData = [];
 bool isEditingEnabled = true;
 
 class EditableTable extends StatefulWidget {
+
+  final void Function(int) onDeleteAccount;
+  EditableTable({required this.onDeleteAccount});
+
   @override
   _EditableTableState createState() => _EditableTableState();
 }
 
 class _EditableTableState extends State<EditableTable> {
   final double fontSizeForColumns = 24;
-  final List<String> roleOptions = ['10', '20'];
+  final List<String> roleOptions = ['10', '20', 'User', 'Engineer'];
 
   @override
   Widget build(BuildContext context) {
@@ -39,15 +43,13 @@ class _EditableTableState extends State<EditableTable> {
         columns: tableData[0].keys.map((String column) {
           return DataColumn(
             label: Text(
-              column == 'accountId' ? 'ID' : 
-                (column == 'pin' ? 'Password' : 
-                (column == 'username' ? 'Username' : 
-                (column == 'role' ? 'Role' : column))),
+              column == 'accountId'
+                  ? 'ID'
+                  : (column == 'pin'
+                      ? 'Password'
+                      : (column == 'username' ? 'Username' : (column == 'role' ? 'Role' : column))),
               style: TextStyle(
-                fontSize: column == 'ID' ||
-                        column == 'username' ||
-                        column == 'Password' ||
-                        column == 'role'
+                fontSize: column == 'ID' || column == 'Username' || column == 'Password' || column == 'Role'
                     ? fontSizeForColumns
                     : null,
               ),
@@ -55,7 +57,9 @@ class _EditableTableState extends State<EditableTable> {
             ),
           );
         }).toList(),
-        rows: tableData.map((Map<String, dynamic> row) {
+        rows: tableData.asMap().entries.map((entry) {
+          final int index = entry.key;
+          final Map<String, dynamic> row = entry.value;
 
           //---------------------ID---------------------
           return DataRow(
@@ -70,33 +74,49 @@ class _EditableTableState extends State<EditableTable> {
                     textAlign: TextAlign.center,
                   ),
                 );
-              } else if (cell == 'role') {
-
+              } else if (cell == 'Role') {
                 //---------------------ROLE---------------------
                 return DataCell(
-                  DropdownButton<String>(
-                    value: row[cell].toString(),
-                    items: roleOptions.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option),
-                      );
-                    }).toList(),
-                    onChanged: isEditingEnabled
-                        ? (value) {
-                            setState(() {
-                              row[cell] = value!;
-                            });
-                          }
-                        : null,
+                  Row(
+                    children: [
+                      DropdownButton<String>(
+                        value: row[cell].toString(),
+                        items: roleOptions.map((String option) {
+                          return DropdownMenuItem<String>(
+                            value: option,
+                            child: Text(option),
+                          );
+                        }).toList(),
+                        onChanged: isEditingEnabled
+                            ? (value) {
+                                setState(() {
+                                  row[cell] = value;
+                                });
+                              }
+                            : null,
+                      ),
+
+                      //--------------------- DELETE ACCOUNT----------------------
+                      Container(
+                      margin: EdgeInsets.only(left: 75),
+                        child: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: isEditingEnabled
+                        ? () {
+                          widget.onDeleteAccount(row['ID']);
+                      }
+                    : null,
                   ),
-                );
-              } else {
+                ),
+              ],
+              ),
+              );
+            } else {
                 //---------------------USER, PASSWORD---------------------
                 return DataCell(
                   TextFormField(
                     readOnly: !isEditingEnabled,
-                    initialValue: row[cell].toString(), 
+                    initialValue: row[cell].toString(),
                     onChanged: (value) {
                       setState(() {
                         row[cell] = value;
@@ -111,12 +131,11 @@ class _EditableTableState extends State<EditableTable> {
       );
     } else {
       return Center(
-        child: Text("No data available"), // Display a message when there's no data
+        child: Text("No data available"),
       );
     }
   }
 }
-
  //----------------------BUILD--------------------------
 
 class _Container1State extends State<Container1> {
@@ -136,7 +155,7 @@ class _Container1State extends State<Container1> {
 
   //----------------------MAIN CONTAINER--------------------------
 
-  Widget DesktopContainer1() {
+Widget DesktopContainer1() {
     return Container(
       height: 400,
       width: w,
@@ -145,7 +164,7 @@ class _Container1State extends State<Container1> {
         children: [
           Expanded(
             flex: 75,
-            child: EditableTable(),
+            child: EditableTable(onDeleteAccount: deleteAccount,),
           ),
           Expanded(
             flex: 25,
@@ -175,7 +194,7 @@ class _Container1State extends State<Container1> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          isEditingEnabled = !isEditingEnabled; // Toggle the editable state
+                          isEditingEnabled = !isEditingEnabled;
                         });
                       },
                         child: Text(
@@ -184,7 +203,7 @@ class _Container1State extends State<Container1> {
                             fontSize: 20,
                           ),
                         ),
-                      )
+                      ),
                 ],
               ),
             ),
@@ -199,32 +218,44 @@ class _Container1State extends State<Container1> {
 void saveChanges() async {
   for (var row in tableData) {
     final int accountId = row['ID']; // Assuming 'ID' is the unique identifier
-    final Map<String, dynamic> updatedData = {
-      'accountId': accountId, // Include the unique identifier
-      'username': row['username'],
-      'pin': row['Password'],
-      'role': row['role'],
-    };
+    final String username = row['Username'];
+    final String pin = row['Password'];
+    final String role = row['Role'];
 
-    final String apiUrl = 'http://localhost:8080/api/v1/account/$accountId'; // Construct the API URL
+    await updateAccount(accountId, username, pin, role);
+  }
+}
 
-    try {
-      final response = await http.put(
-        Uri.parse(apiUrl),
-        body: jsonEncode(updatedData),
-        headers: {'Content-Type': 'application/json'},
-      );
+//---------------------UPDATE ACCOUNT----------------------------------
 
-      if (response.statusCode == 200) {
-        print('Data for account $accountId updated successfully.');
-      } else {
-        // Handle HTTP error status codes
-        print('Failed to update data for account $accountId. HTTP Error: ${response.statusCode}');
-      }
-    } catch (e) {
-      // Handle other exceptions (e.g., network issues, parsing errors)
-      print('Error updating data for account $accountId: $e');
+Future<void> updateAccount(int accountId, String username, String pin, String role) async {
+  final String apiUrl = 'http://localhost:8080/api/v1/account/update'; // Replace with your API endpoint
+
+  try {
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      body: jsonEncode({
+        'accountId': accountId,
+        'username': username,
+        'pin': pin,
+        'role': role,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Handle successful update, you can update the UI if needed
+      fetchDataFromBackend();
+    } else {
+      // Handle error, show a snackbar, or display an error message
+      print('HTTP Error: ${response.statusCode}');
+      print('Response Body: ${response.body}');
     }
+  } catch (error) {
+    // Handle exceptions
+    print('Error: $error');
   }
 }
 
@@ -240,12 +271,11 @@ Future<void> fetchDataFromBackend() async {
       final List<Map<String, dynamic>> newTableData = jsonData.map((dynamic item) {
        return {
         'ID': item['accountId'] as int,
-        'username': item['username'].toString(),
+        'Username': item['username'].toString(),
         'Password': item['pin'].toString(),
-        'role': item['role'].toString(),
+        'Role': item['role'].toString(),
         };
       }).toList();
-
 
       setState(() {
         tableData = newTableData;
@@ -259,4 +289,53 @@ Future<void> fetchDataFromBackend() async {
     print("Error fetching data from the backend: $e");
   }
 }
+
+//----------------------DELETE ACCOUNT FROM BACKEND--------------------------
+
+Future<void> deleteAccount(int accountId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('http://localhost:8080/api/v1/account/delete'),
+        body: jsonEncode([accountId]),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Handle successful deletion, you can update the UI if needed
+        fetchDataFromBackend();
+      } else {
+        // Handle error, show a snackbar, or display an error message
+        print('HTTP Error: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+      }
+    } catch (error) {
+      // Handle exceptions
+      print('Error: $error');
+    }
+  }
+}
+
+class Account {
+  final int accountId;
+  final String username;
+  final String pin;
+  final String role;
+
+  Account({
+    required this.accountId,
+    required this.username,
+    required this.pin,
+    required this.role,
+  });
+
+  factory Account.fromJson(Map<String, dynamic> json) {
+    return Account(
+      accountId: json['accountId'],
+      username: json['username'],
+      pin: json['pin'],
+      role: json['role'],
+    );
+  }
 }
