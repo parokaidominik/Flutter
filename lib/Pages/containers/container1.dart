@@ -87,8 +87,10 @@ Widget build(BuildContext context) {
                       });
                     }
                   },
+                  style: TextStyle(
+                color: isEditingEnabled ? null : Colors.grey,
                 ),
-              );
+                ));
             } else if (cell == 'Role') {
               //---------------------ROLE---------------------
               return DataCell(
@@ -173,74 +175,98 @@ class _Container1State extends State<Container1> {
     );
   }
 
-  //----------------------MAIN CONTAINER--------------------------
+//----------------------MAIN CONTAINER--------------------------
 
 Widget DesktopContainer1() {
-    return Container(
-      height: 400,
-      width: w,
-      margin: EdgeInsets.symmetric(horizontal: w! / 20, vertical: 20),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 75,
-            child: EditableTable(onDeleteAccount: deleteAccount,),
-          ),
-          Expanded(
-            flex: 25,
-            child: Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  //----------------------SAVE BUTTON--------------------------
-                  ElevatedButton(
-                    onPressed: () {
-                      saveChanges();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(20),
-                      backgroundColor: Color.fromARGB(255, 19, 32, 93),
-                    ),
-                    child: Text(
-                      'Save',
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: Color.fromARGB(255, 42, 163, 208),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  //----------------------EDITING BUTTON--------------------------
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          isEditingEnabled = !isEditingEnabled;
-                        });
-                      },
+  // Calculate the dynamic height based on the number of rows and row height
+  double dynamicHeight = tableData.isNotEmpty
+      ? (tableData.length * (24 + 2 * 15)) //10 is the vertical padding/margin
+      : 400; // Set a default height if there is no data
+
+  return Padding(
+    padding: EdgeInsets.only(bottom: 20), // Adjust the value as needed
+    child: SingleChildScrollView(
+      child: Container(
+        height: dynamicHeight,
+        width: w,
+        margin: EdgeInsets.symmetric(horizontal: w! / 20, vertical: 20),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 75,
+              child: EditableTable(onDeleteAccount: deleteAccount),
+            ),
+            Expanded(
+              flex: 25,
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    //----------------------SAVE BUTTON--------------------------
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 30), // Adjust the value as needed
+                      child: ElevatedButton(
+                        onPressed: () {
+                          saveChanges();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.all(20),
+                          backgroundColor: Color.fromARGB(255, 19, 32, 93),
+                        ),
                         child: Text(
-                          isEditingEnabled ? 'Disable Editing' : 'Enable Editing',
+                          'Save',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 60,
+                            color: Color.fromARGB(255, 42, 163, 208),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
+                    ),
+                    //----------------------EDITING BUTTON--------------------------
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 30), // Adjust the value as needed
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isEditingEnabled = !isEditingEnabled;
+                          });
+                        },
+                        child: Text(
+                          isEditingEnabled ? 'Disable Editing' : 'Enable Editing',
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                      ),
+                    ),
 
-                      ElevatedButton(
-        onPressed: () {
-          // Show the create user dialog when the button is pressed
-          showCreateUserDialog(context);
-        },
-        child: Text('Create User'),
-      ),
-                ],
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 30), // Adjust the value as needed
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Show the create user dialog when the button is pressed
+                          showCreateUserDialog(context);
+                        },
+                        child: Text(
+                          'Create User',
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
 //----------------------SAVE CHANGES--------------------------
 
@@ -319,39 +345,6 @@ Future<void> fetchDataFromBackend() async {
   }
 }
 
-//----------------------ACCOUNT CREATOR WINDOW-------------------------
-
-Future<void> showCreateUserDialog(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Create User'),
-          content: CreateUserForm(
-            createAccount: createAccount,
-            onCreateUser: () {
-              fetchDataFromBackend();
-              createUsernameController.clear(); // Clear the controllers
-              createPinController.clear();
-              createRoleController.clear();
-              Navigator.of(context).pop();
-            }, createUsernameController: createUsernameController,
-             createPinController: createPinController,
-              createRoleController: createRoleController,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
 //----------------------CREATE ACCOUNT TO BACKEND--------------------------
 
  Future<void> createAccount() async {
@@ -409,6 +402,43 @@ Future<void> deleteAccount(int accountId) async {
     }
   }
 
+  //----------------------ACCOUNT CREATOR WINDOW-------------------------
+
+Future<void> showCreateUserDialog(BuildContext context) async {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Center(child: Text('Create User')),
+        content: Container(
+          height: 220.0, // Adjust the height as needed
+          child: CreateUserForm(
+            createAccount: createAccount,
+            onCreateUser: () {
+              fetchDataFromBackend();
+              createUsernameController.clear();
+              createPinController.clear();
+              createRoleController.clear();
+              Navigator.of(context).pop();
+            },
+            createUsernameController: createUsernameController,
+            createPinController: createPinController,
+            createRoleController: createRoleController,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }
 
 //----------------------USER CREATION--------------------------
@@ -434,32 +464,64 @@ class CreateUserForm extends StatefulWidget {
 }
 
 class _CreateUserFormState extends State<CreateUserForm> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: widget.createUsernameController, // Use the provided controller
-          decoration: InputDecoration(labelText: 'Create Username'),
+ @override
+Widget build(BuildContext context) {
+  final padding = EdgeInsets.all(8.0); // Adjust the padding as needed
+  final height = 50.0; // Adjust the height as needed
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        padding: padding,
+        height: height,
+        child: TextField(
+          controller: widget.createUsernameController,
+          decoration: InputDecoration(labelText: 'Username',
+          floatingLabelBehavior: FloatingLabelBehavior.never),
+
         ),
-        TextField(
-          controller: widget.createPinController, // Use the provided controller
-          decoration: InputDecoration(labelText: 'Create Pin'),
+      ),
+      Container(
+        padding: padding,
+        height: height,
+        child: TextField(
+          controller: widget.createPinController,
+          decoration: InputDecoration(labelText: 'Pin',
+          floatingLabelBehavior: FloatingLabelBehavior.never),
         ),
-        TextField(
-          controller: widget.createRoleController, // Use the provided controller
-          decoration: InputDecoration(labelText: 'Create Role'),
+      ),
+      Container(
+        padding: padding,
+        height: height,
+        child: TextField(
+          controller: widget.createRoleController,
+          decoration: InputDecoration(labelText: 'Role',
+          floatingLabelBehavior: FloatingLabelBehavior.never),
         ),
-        ElevatedButton(
-          onPressed: () async {
-            await widget.createAccount(); // Call createAccount from the widget's parameter
-            widget.onCreateUser();
+      ),
+      Container(
+        padding: padding,
+        margin: EdgeInsets.only(top: 10),
+        height: height,
+        child: Center(
+          child: ElevatedButton(
+            onPressed: () async {
+            await widget.createAccount();
+          widget.onCreateUser();
           },
-          child: Text('Create'),
-        ),
-      ],
-    );
-  }
+      style: ElevatedButton.styleFrom(
+        primary: Colors.blue, // Change button color to blue
+      ),
+      child: Text(
+        'Create',
+        style: TextStyle(fontSize: 18), // Increase font size
+      ),
+      ),
+      ),
+      ),
+    ],
+  );
+}
   
   }
