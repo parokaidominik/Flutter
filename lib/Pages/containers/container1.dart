@@ -183,8 +183,8 @@ class _Container1State extends State<Container1> {
 Widget DesktopContainer1() {
   // dynamic height calculate
   double dynamicHeight = tableData.isNotEmpty
-      ? (tableData.length * (24 + 2 * 15))
-      : 400; // Default height
+      ? (tableData.length * (24 + 2 * 3))+400
+      : 420; // Default height
 
   return Padding(
     padding: EdgeInsets.only(bottom: 20), // Adjust the value as needed
