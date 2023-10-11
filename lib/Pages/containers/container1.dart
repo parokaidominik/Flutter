@@ -1,10 +1,14 @@
-// ignore_for_file: prefer_const_constructors, non_constant_identifier_names, avoid_print, prefer_const_declarations, avoid_unnecessary_containers, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, non_constant_identifier_names, avoid_print, prefer_const_declarations, avoid_unnecessary_containers, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, prefer_const_literals_to_create_immutables, deprecated_member_use
 
 import 'package:app_test/Utils/constants.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:url_launcher/url_launcher.dart';
 
 class Container1 extends StatefulWidget {
   const Container1({Key? key}) : super(key: key);
@@ -204,7 +208,7 @@ Widget DesktopContainer1() {
                   children: [
                     //----------------------SAVE BUTTON--------------------------
                     Padding(
-                      padding: EdgeInsets.only(bottom: 30), // Adjust the value as needed
+                      padding: EdgeInsets.only(bottom: 30),
                       child: ElevatedButton(
                         onPressed: () {
                           saveChanges();
@@ -225,7 +229,7 @@ Widget DesktopContainer1() {
                     ),
                     //----------------------EDITING BUTTON--------------------------
                     Padding(
-                      padding: EdgeInsets.only(bottom: 30), // Adjust the value as needed
+                      padding: EdgeInsets.only(bottom: 30),
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
@@ -240,16 +244,45 @@ Widget DesktopContainer1() {
                         ),
                       ),
                     ),
-
+                    //----------------------USER CREATION BUTTON--------------------------
                     Padding(
-                      padding: EdgeInsets.only(bottom: 30), // Adjust the value as needed
+                      padding: EdgeInsets.only(bottom: 30),
                       child: ElevatedButton(
                         onPressed: () {
-                          // Show the create user dialog when the button is pressed
                           showCreateUserDialog(context);
                         },
                         child: Text(
                           'Create User',
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                      ),
+                    ),
+                    //----------------------UPLOAD DATABSE BUTTON--------------------------
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 30),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          uploadFile();
+                        },
+                        child: Text(
+                          'Upload Database',
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                      ),
+                    ),
+                    //----------------------DOWNLOAD DATABASE BUTTON--------------------------
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 30),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _downloadDatabase();
+                        },
+                        child: Text(
+                          'Download Database',
                           style: TextStyle(
                             fontSize: 30,
                           ),
@@ -280,6 +313,58 @@ void saveChanges() async {
     await updateAccount(accountId, username, pin, role);
   }
 }
+
+void _downloadDatabase() async {
+    const url =
+        'http://localhost:8080/api/v1/database/download'; // Replace with the actual URL for downloading the database
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      // Handle error, e.g., show a snackbar or display an error message
+      print('Could not launch $url');
+    }
+  }
+
+  Future<void> uploadFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['db'], // Specify the extension of your database file
+    );
+
+    if (result != null) {
+      PlatformFile file = result.files.single;
+      final bytes = file.bytes;
+      if (bytes != null) {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse(
+              'http://localhost:8080/api/v1/database/replace'), // Update the URL
+        );
+
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            bytes,
+            filename: 'yourfile.db',
+            contentType: MediaType('application', 'octet-stream'),
+          ),
+        );
+
+        var response = await request.send();
+
+        if (response.statusCode == 200) {
+          // Handle successful file upload, you can update the UI if needed
+          print('Database file uploaded successfully');
+          // Refresh the site by fetching updated data
+          fetchDataFromBackend();
+        } else {
+          // Handle error, show a snackbar, or display an error message
+          print('HTTP Error: ${response.statusCode}');
+          print('Response Body: ${response.stream}');
+        }
+      }
+    }
+  }
 
 //---------------------UPDATE ACCOUNT IN BACKEND----------------------------------
 
