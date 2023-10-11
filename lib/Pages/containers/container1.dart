@@ -39,7 +39,7 @@ class _EditableTableState extends State<EditableTable> {
   final List<String> roleOptions = ['User', 'Engineer'];
 
 
-//----------------------DATA TABLE--------------------------
+//----------------------EDITABLE DATA TABLE--------------------------
 
 @override
 Widget build(BuildContext context) {
@@ -116,7 +116,6 @@ Widget build(BuildContext context) {
                             }
                           : null,
                     ),
-
                     //--------------------- DELETE ACCOUNT----------------------
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 30.0),
@@ -168,7 +167,7 @@ class _Container1State extends State<Container1> {
   @override
   void initState() {
     super.initState();
-    fetchDataFromBackend(); // First get the data from backend
+    fetchDataFromBackend();
   }
 
   @override
@@ -182,10 +181,10 @@ class _Container1State extends State<Container1> {
 //----------------------MAIN CONTAINER--------------------------
 
 Widget DesktopContainer1() {
-  // Calculate the dynamic height based on the number of rows and row height
+  // dynamic height calculate
   double dynamicHeight = tableData.isNotEmpty
-      ? (tableData.length * (24 + 2 * 15)) //10 is the vertical padding/margin
-      : 400; // Set a default height if there is no data
+      ? (tableData.length * (24 + 2 * 15))
+      : 400; // Default height
 
   return Padding(
     padding: EdgeInsets.only(bottom: 20), // Adjust the value as needed
@@ -267,9 +266,9 @@ Widget DesktopContainer1() {
                           uploadFile();
                         },
                         child: Text(
-                          'Upload Database',
+                          'IMPORT Database',
                           style: TextStyle(
-                            fontSize: 30,
+                            fontSize: 25,
                           ),
                         ),
                       ),
@@ -282,9 +281,9 @@ Widget DesktopContainer1() {
                           _downloadDatabase();
                         },
                         child: Text(
-                          'Download Database',
+                          'EXPORT Database',
                           style: TextStyle(
-                            fontSize: 30,
+                            fontSize: 25,
                           ),
                         ),
                       ),
@@ -314,9 +313,11 @@ void saveChanges() async {
   }
 }
 
+//----------------------DOWNLOAD DATABASE--------------------------
+
 void _downloadDatabase() async {
     const url =
-        'http://localhost:8080/api/v1/database/download'; // Replace with the actual URL for downloading the database
+        'http://localhost:8080/api/v1/database/download';
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -324,6 +325,8 @@ void _downloadDatabase() async {
       print('Could not launch $url');
     }
   }
+
+  //----------------------UPLOAD DATABASE--------------------------
 
   Future<void> uploadFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
