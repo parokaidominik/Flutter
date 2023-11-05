@@ -1,6 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:app_test/Pages/Home.dart';
+import 'package:app_test/Pages/Login.dart';
 import 'package:app_test/Utils/Colors.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 1, 213, 255)),
         useMaterial3: true,
         primaryColor: AppColors.primary),
-      home: Home(),
+      home: LoginPage(),
     );
   }
 }

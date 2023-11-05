@@ -23,12 +23,14 @@ List<Map<String, dynamic>> tableData = [];
 
 //----------------------EDITABLE TABLE (ID, USERNAME, PASSWORD, ROLE)--------------------------
 
-bool isEditingEnabled = true;
-
 class EditableTable extends StatefulWidget {
-
   final void Function(int) onDeleteAccount;
-  EditableTable({required this.onDeleteAccount});
+  final void Function() saveChanges;
+
+  EditableTable({
+    required this.onDeleteAccount,
+    required this.saveChanges,
+  });
 
   @override
   _EditableTableState createState() => _EditableTableState();
@@ -36,125 +38,115 @@ class EditableTable extends StatefulWidget {
 
 class _EditableTableState extends State<EditableTable> {
   final double fontSizeForColumns = 24;
-  final List<String> roleOptions = ['User', 'Engineer'];
 
+  //----------------------EDITABLE DATA TABLE--------------------------
 
-//----------------------EDITABLE DATA TABLE--------------------------
-
-@override
-Widget build(BuildContext context) {
-  if (tableData.isNotEmpty) {
-    return DataTable(
-      columns: tableData[0].keys.map((String column) {
-        return DataColumn(
-          label: Text(
-            column == 'accountId'
-                ? 'ID'
-                : (column == 'pin'
-                    ? 'Password'
-                    : (column == 'username' ? 'Username' : (column == 'role' ? 'Role' : column))),
-            style: TextStyle(
-              fontSize: column == 'ID' || column == 'Username' || column == 'Password' || column == 'Role'
-                  ? fontSizeForColumns
-                  : null,
+  @override
+  Widget build(BuildContext context) {
+    if (tableData.isNotEmpty) {
+      return DataTable(
+        columns: tableData[0].keys.map((String column) {
+          return DataColumn(
+            label: Text(
+              column == 'accountId'
+                  ? 'ID'
+                  : (column == 'pin'
+                      ? 'Password'
+                      : (column == 'username' ? 'Username' : (column == 'role' ? 'Role' : column))),
+              style: TextStyle(
+                fontSize: column == 'ID' || column == 'Username' || column == 'Password' || column == 'Role'
+                    ? fontSizeForColumns
+                    : null,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        );
-      }).toList(),
-      rows: tableData.asMap().entries.map((entry) {
-        final Map<String, dynamic> row = entry.value;
+          );
+        }).toList(),
+        rows: tableData.asMap().entries.map((entry) {
+          final Map<String, dynamic> row = entry.value;
 
-        //---------------------ID---------------------
-        return DataRow(
-          cells: row.keys.map((String cell) {
-            if (cell == 'ID') {
-              return DataCell(
-                Text(
-                  row[cell].toString(),
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              );
-            } else if (cell == 'Password') {
-              //---------------------PASSWORD---------------------
-              return DataCell(
-                TextFormField(
-                  readOnly: !isEditingEnabled,
-                  initialValue: row[cell].toString(),
-                  onChanged: (value) {
-                    if (isEditingEnabled) {
-                      setState(() {
-                        row[cell] = value;
-                      });
-                    }
-                  },
-                  style: TextStyle(
-                color: isEditingEnabled ? null : Colors.grey,
-                ),
-                ));
-            } else if (cell == 'Role') {
-              //---------------------ROLE---------------------
-              return DataCell(
-                Row(
-                  children: [
-                    DropdownButton<String>(
-                      value: row[cell].toString(),
-                      items: roleOptions.map((String option) {
-                        return DropdownMenuItem<String>(
-                          value: option,
-                          child: Text(option),
-                        );
-                      }).toList(),
-                      onChanged: isEditingEnabled
-                          ? (value) {
-                              setState(() {
-                                row[cell] = value;
-                              });
-                            }
-                          : null,
+          //---------------------ID---------------------
+          return DataRow(
+            cells: row.keys.map((String cell) {
+              if (cell == 'ID') {
+                return DataCell(
+                  Text(
+                    row[cell].toString(),
+                    style: TextStyle(
+                      fontSize: 20,
                     ),
-                    //--------------------- DELETE ACCOUNT----------------------
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: 30.0),
-                      child: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: isEditingEnabled
-                            ? () {
-                                widget.onDeleteAccount(row['ID']);
-                              }
-                            : null,
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              } else if (cell == 'Password') {
+                //---------------------PASSWORD---------------------
+                return DataCell(
+                  Text(
+                    '******', // Display asterisks or dots instead of the actual password
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              } else if (cell == 'Role') {
+                //---------------------ROLE---------------------
+                return DataCell(
+                  Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(right: 50),
+                        width: 80,
+                        child: Text(
+                          row[cell].toString(),
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              //---------------------USER---------------------
-              return DataCell(
-                Text(
-                  row[cell].toString(),
-                  style: TextStyle(
-                    fontSize: 20,
+                      //---------------------EDIT BUTTON---------------------
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () {
+                          showEditUserDialog(context, row, () {
+                            widget.saveChanges();
+                          });
+                        },
+                      ),
+                      //---------------------DELETE BUTTON---------------------
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          widget.onDeleteAccount(row['ID']);
+                        },
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              );
-            }
-          }).toList(),
-        );
-      }).toList(),
-    );
-  } else {
-    return Center(
-      child: Text("No data available"),
-    );
+                );
+              } else {
+                //---------------------USER---------------------
+                return DataCell(
+                  Text(
+                    row[cell].toString(),
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }
+            }).toList(),
+          );
+        }).toList(),
+      );
+    } else {
+      return Center(
+        child: Text("No data available"),
+      );
+    }
   }
 }
-}
-
  //----------------------BUILD--------------------------
 
 class _Container1State extends State<Container1> {
@@ -197,7 +189,7 @@ Widget DesktopContainer1() {
           children: [
             Expanded(
               flex: 75,
-              child: EditableTable(onDeleteAccount: deleteAccount),
+              child: EditableTable(onDeleteAccount: deleteAccount,saveChanges: saveChanges,),
             ),
             Expanded(
               flex: 25,
@@ -222,23 +214,6 @@ Widget DesktopContainer1() {
                             fontSize: 60,
                             color: Color.fromARGB(255, 42, 163, 208),
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    //----------------------EDITING BUTTON--------------------------
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 30),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isEditingEnabled = !isEditingEnabled;
-                          });
-                        },
-                        child: Text(
-                          isEditingEnabled ? 'Disable Editing' : 'Enable Editing',
-                          style: TextStyle(
-                            fontSize: 30,
                           ),
                         ),
                       ),
@@ -526,8 +501,72 @@ Future<void> showCreateUserDialog(BuildContext context) async {
     },
   );
 }
-
 }
+
+ //----------------------EDIT USER WINDOW-------------------------
+// Define a global key for the form
+final _formKey = GlobalKey<FormState>();
+
+final _passwordController = TextEditingController();
+final _roleController = TextEditingController(); // This controller is not needed for the DropdownButtonFormField
+
+void showEditUserDialog(BuildContext context, Map<String, dynamic> user, Function onSave) {
+  _passwordController.text = user['Password'];
+
+  // Initialize the role value with the user's current role
+  String selectedRole = user['Role'];
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('User: ${user['Username']}'),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+              ),
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                items: ['Engineer', 'User'].map((String role) {
+                  return DropdownMenuItem<String>(
+                    value: role,
+                    child: Text(role),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  // Update the selected role when the user makes a selection
+                  selectedRole = value!;
+                },
+                decoration: InputDecoration(labelText: 'Role'),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                // Update the user information with the edited values
+                user['Password'] = _passwordController.text;
+                user['Role'] = selectedRole; 
+                Navigator.of(context).pop();
+                onSave();
+              }
+            },
+            child: Text('Save'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
 
 //----------------------USER CREATION--------------------------
 
