@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names, avoid_print, prefer_const_declarations, avoid_unnecessary_containers, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, prefer_const_literals_to_create_immutables, deprecated_member_use
 
+import 'package:app_test/Pages/Login.dart';
 import 'package:app_test/Utils/constants.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -42,110 +43,116 @@ class _EditableTableState extends State<EditableTable> {
   //----------------------EDITABLE DATA TABLE--------------------------
 
   @override
-  Widget build(BuildContext context) {
-    if (tableData.isNotEmpty) {
-      return DataTable(
-        columns: tableData[0].keys.map((String column) {
-          return DataColumn(
-            label: Text(
-              column == 'accountId'
-                  ? 'ID'
-                  : (column == 'pin'
-                      ? 'Password'
-                      : (column == 'username' ? 'Username' : (column == 'role' ? 'Role' : column))),
-              style: TextStyle(
-                fontSize: column == 'ID' || column == 'Username' || column == 'Password' || column == 'Role'
-                    ? fontSizeForColumns
-                    : null,
+Widget build(BuildContext context) {
+  if (tableData.isNotEmpty) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: tableData[0].keys.map((String column) {
+            return DataColumn(
+              label: Text(
+                column == 'accountId'
+                    ? 'ID'
+                    : (column == 'pin'
+                        ? 'Password'
+                        : (column == 'username' ? 'Username' : (column == 'role' ? 'Role' : column))),
+                style: TextStyle(
+                  fontSize: column == 'ID' || column == 'Username' || column == 'Password' || column == 'Role'
+                      ? fontSizeForColumns
+                      : null,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          );
-        }).toList(),
-        rows: tableData.asMap().entries.map((entry) {
-          final Map<String, dynamic> row = entry.value;
+            );
+          }).toList(),
+          rows: tableData.asMap().entries.map((entry) {
+            final Map<String, dynamic> row = entry.value;
 
-          //---------------------ID---------------------
-          return DataRow(
-            cells: row.keys.map((String cell) {
-              if (cell == 'ID') {
-                return DataCell(
-                  Text(
-                    row[cell].toString(),
-                    style: TextStyle(
-                      fontSize: 20,
+            //---------------------ID---------------------
+            return DataRow(
+              cells: row.keys.map((String cell) {
+                if (cell == 'ID') {
+                  return DataCell(
+                    Text(
+                      row[cell].toString(),
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              } else if (cell == 'Password') {
-                //---------------------PASSWORD---------------------
-                return DataCell(
-                  Text(
-                    '******', // Display asterisks or dots instead of the actual password
-                    style: TextStyle(
-                      fontSize: 20,
+                  );
+                } else if (cell == 'Password') {
+                  //---------------------PASSWORD---------------------
+                  return DataCell(
+                    Text(
+                      '******', // Display asterisks or dots instead of the actual password
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              } else if (cell == 'Role') {
-                //---------------------ROLE---------------------
-                return DataCell(
-                  Row(
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(right: 50),
-                        width: 80,
-                        child: Text(
-                          row[cell].toString(),
-                          style: TextStyle(
-                            fontSize: 20,
+                  );
+                } else if (cell == 'Role') {
+                  //---------------------ROLE---------------------
+                  return DataCell(
+                    Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(right: 50),
+                          width: 80,
+                          child: Text(
+                            row[cell].toString(),
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                            textAlign: TextAlign.left,
                           ),
-                          textAlign: TextAlign.left,
                         ),
-                      ),
-                      //---------------------EDIT BUTTON---------------------
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          showEditUserDialog(context, row, () {
-                            widget.saveChanges();
-                          });
-                        },
-                      ),
-                      //---------------------DELETE BUTTON---------------------
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          widget.onDeleteAccount(row['ID']);
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                //---------------------USER---------------------
-                return DataCell(
-                  Text(
-                    row[cell].toString(),
-                    style: TextStyle(
-                      fontSize: 20,
+                        //---------------------EDIT BUTTON---------------------
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            showEditUserDialog(context, row, () {
+                              widget.saveChanges();
+                            });
+                          },
+                        ),
+                        //---------------------DELETE BUTTON---------------------
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            widget.onDeleteAccount(row['ID']);
+                          },
+                        ),
+                      ],
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
-            }).toList(),
-          );
-        }).toList(),
-      );
-    } else {
-      return Center(
-        child: Text("No data available"),
-      );
-    }
+                  );
+                } else {
+                  //---------------------USER---------------------
+                  return DataCell(
+                    Text(
+                      row[cell].toString(),
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+              }).toList(),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  } else {
+    return Center(
+      child: Text("No data available"),
+    );
   }
+}
 }
  //----------------------BUILD--------------------------
 
@@ -173,13 +180,12 @@ class _Container1State extends State<Container1> {
 //----------------------MAIN CONTAINER--------------------------
 
 Widget DesktopContainer1() {
-  // dynamic height calculate
   double dynamicHeight = tableData.isNotEmpty
-      ? (tableData.length * (24 + 2 * 3))+400
+      ? (tableData.length * (24 + 2 * 3)) + 400
       : 420; // Default height
 
   return Padding(
-    padding: EdgeInsets.only(bottom: 20), // Adjust the value as needed
+    padding: EdgeInsets.only(bottom: 20),
     child: SingleChildScrollView(
       child: Container(
         height: dynamicHeight,
@@ -189,7 +195,7 @@ Widget DesktopContainer1() {
           children: [
             Expanded(
               flex: 75,
-              child: EditableTable(onDeleteAccount: deleteAccount,saveChanges: saveChanges,),
+              child: EditableTable(onDeleteAccount: deleteAccount, saveChanges: saveChanges),
             ),
             Expanded(
               flex: 25,
@@ -197,27 +203,6 @@ Widget DesktopContainer1() {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    //----------------------SAVE BUTTON--------------------------
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 30),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          saveChanges();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.all(20),
-                          backgroundColor: Color.fromARGB(255, 19, 32, 93),
-                        ),
-                        child: Text(
-                          'Save',
-                          style: TextStyle(
-                            fontSize: 60,
-                            color: Color.fromARGB(255, 42, 163, 208),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
                     //----------------------USER CREATION BUTTON--------------------------
                     Padding(
                       padding: EdgeInsets.only(bottom: 30),
@@ -257,6 +242,23 @@ Widget DesktopContainer1() {
                         },
                         child: Text(
                           'EXPORT Database',
+                          style: TextStyle(
+                            fontSize: 25,
+                          ),
+                        ),
+                      ),
+                    ),
+                    //----------------------LOGOUT BUTTON--------------------------
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 30),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await Future.delayed(Duration(seconds: 1));
+                          Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => LoginPage()));
+                        },
+                        child: Text(
+                          'LOGOUT',
                           style: TextStyle(
                             fontSize: 25,
                           ),
@@ -331,12 +333,9 @@ void _downloadDatabase() async {
         var response = await request.send();
 
         if (response.statusCode == 200) {
-          // Handle successful file upload, you can update the UI if needed
           print('Database file uploaded successfully');
-          // Refresh the site by fetching updated data
           fetchDataFromBackend();
         } else {
-          // Handle error, show a snackbar, or display an error message
           print('HTTP Error: ${response.statusCode}');
           print('Response Body: ${response.stream}');
         }
@@ -364,15 +363,12 @@ Future<void> updateAccount(int accountId, String username, String pin, String ro
     );
 
     if (response.statusCode == 200) {
-      // Handle successful update, you can update the UI if needed
       fetchDataFromBackend();
     } else {
-      // Handle error, show a snackbar, or display an error message
       print('HTTP Error: ${response.statusCode}');
       print('Response Body: ${response.body}');
     }
   } catch (error) {
-    // Handle exceptions
     print('Error: $error');
   }
 }
@@ -409,35 +405,42 @@ Future<void> fetchDataFromBackend() async {
 }
 
 //----------------------CREATE ACCOUNT TO BACKEND--------------------------
+Future<void> createAccount() async {
+  try {
+    final response = await http.post(
+      Uri.parse('http://localhost:8080/api/v1/account/create'),
+      body: jsonEncode({
+        'username': createUsernameController.text,
+        'pin': createPinController.text,
+        'role': createRoleController.text,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
 
- Future<void> createAccount() async {
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:8080/api/v1/account/create'),
-        body: jsonEncode({
-          'username': createUsernameController.text,
-          'pin': createPinController.text,
-          'role': createRoleController.text,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
+    if (response.statusCode == 200) {
+      // Handle successful creation
+    } else {
+      final responseBody = jsonDecode(response.body);
+      final errorMessage = responseBody['error'];
 
-      if (response.statusCode == 200) {
-        // Handle successful creation
-        // You can add custom logic here if needed
+      if (errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: Duration(seconds: 5),
+          ),
+        );
       } else {
-        // Handle error, show a snackbar, or display an error message
         print('HTTP Error: ${response.statusCode}');
         print('Response Body: ${response.body}');
       }
-    } catch (error) {
-      // Handle exceptions
-      print('Error: $error');
     }
+  } catch (error) {
+    print('Error: $error');
   }
-
+}
 
 //----------------------DELETE ACCOUNT FROM BACKEND--------------------------
 
@@ -529,6 +532,16 @@ void showEditUserDialog(BuildContext context, Map<String, dynamic> user, Functio
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(labelText: 'Password'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Password is required';
+                  } else if (value.length < 4) {
+                    return 'Password must be at least 4 characters long';
+                  } else if (!RegExp(r'^[a-zA-Z0-9]*$').hasMatch(value)) {
+                    return 'Password can only contain English letters and numbers';
+                  }
+                  return null;
+                },
               ),
               DropdownButtonFormField<String>(
                 value: selectedRole,
@@ -614,7 +627,7 @@ Widget build(BuildContext context) {
         height: height,
         child: TextField(
           controller: widget.createPinController,
-          decoration: InputDecoration(labelText: 'Pin',
+          decoration: InputDecoration(labelText: 'Password',
           floatingLabelBehavior: FloatingLabelBehavior.never),
         ),
       ),
