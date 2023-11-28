@@ -123,7 +123,7 @@ Widget build(BuildContext context) {
                         IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {
-                            widget.onDeleteAccount(row['ID']);
+                            _confirmDeleteDialog(row['ID']);
                           },
                         ),
                       ],
@@ -153,7 +153,37 @@ Widget build(BuildContext context) {
     );
   }
 }
+
+//----------------------CONFIRM DELETE DIALOG--------------------------------
+
+Future<void> _confirmDeleteDialog(int accountId) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Account'),
+          content: Text('Are you sure you want to delete this account?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Bezárja a dialogot
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                widget.onDeleteAccount(accountId); // Törölje az fiókot
+                Navigator.of(context).pop(); // Bezárja a dialogot
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+
  //----------------------BUILD--------------------------
 
 class _Container1State extends State<Container1> {
@@ -176,6 +206,8 @@ class _Container1State extends State<Container1> {
       desktop: DesktopContainer1(),
     );
   }
+
+  
 
 //----------------------MAIN CONTAINER--------------------------
 
@@ -442,6 +474,7 @@ Future<void> createAccount() async {
   }
 }
 
+
 //----------------------DELETE ACCOUNT FROM BACKEND--------------------------
 
 Future<void> deleteAccount(int accountId) async {
@@ -484,7 +517,7 @@ Future<void> showCreateUserDialog(BuildContext context) async {
               fetchDataFromBackend();
               createUsernameController.clear();
               createPinController.clear();
-              createRoleController.clear();
+              createRoleController.text = "User";
               Navigator.of(context).pop();
             },
             createUsernameController: createUsernameController,
@@ -506,7 +539,7 @@ Future<void> showCreateUserDialog(BuildContext context) async {
 }
 }
 
- //----------------------EDIT USER WINDOW-------------------------
+//----------------------EDIT USER WINDOW-------------------------
 // Define a global key for the form
 final _formKey = GlobalKey<FormState>();
 
@@ -584,84 +617,174 @@ void showEditUserDialog(BuildContext context, Map<String, dynamic> user, Functio
 //----------------------USER CREATION--------------------------
 
 class CreateUserForm extends StatefulWidget {
-  
   final void Function() onCreateUser;
   final Future<void> Function() createAccount;
   final TextEditingController createUsernameController;
   final TextEditingController createPinController;
   final TextEditingController createRoleController;
 
+  // Konstruktor a kezdeti szerepkör beállításával
   CreateUserForm({
     required this.onCreateUser,
     required this.createAccount,
     required this.createUsernameController,
     required this.createPinController,
     required this.createRoleController,
-  });
+  }) {
+    createRoleController.text = 'User'; // Alapértelmezett szerepkör: 'User'
+  }
 
   @override
   _CreateUserFormState createState() => _CreateUserFormState();
 }
 
 class _CreateUserFormState extends State<CreateUserForm> {
- @override
-Widget build(BuildContext context) {
-  final padding = EdgeInsets.all(8.0); // Adjust the padding as needed
-  final height = 50.0; // Adjust the height as needed
+  String selectedRole = 'User';
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        padding: padding,
-        height: height,
-        child: TextField(
-          controller: widget.createUsernameController,
-          decoration: InputDecoration(labelText: 'Username',
-          floatingLabelBehavior: FloatingLabelBehavior.never),
+  @override
+  Widget build(BuildContext context) {
+    final padding = EdgeInsets.all(8.0);
+    final height = 50.0;
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: padding,
+          height: height,
+          child: TextField(
+            controller: widget.createUsernameController,
+            decoration: InputDecoration(
+              labelText: 'Username',
+              floatingLabelBehavior: FloatingLabelBehavior.never,
+            ),
+          ),
         ),
-      ),
-      Container(
-        padding: padding,
-        height: height,
-        child: TextField(
-          controller: widget.createPinController,
-          decoration: InputDecoration(labelText: 'Password',
-          floatingLabelBehavior: FloatingLabelBehavior.never),
+        Container(
+          padding: padding,
+          height: height,
+          child: TextField(
+            controller: widget.createPinController,
+            decoration: InputDecoration(
+              labelText: 'Password',
+              floatingLabelBehavior: FloatingLabelBehavior.never,
+            ),
+          ),
         ),
-      ),
-      Container(
-        padding: padding,
-        height: height,
-        child: TextField(
-          controller: widget.createRoleController,
-          decoration: InputDecoration(labelText: 'Role',
-          floatingLabelBehavior: FloatingLabelBehavior.never),
+        Container(
+          padding: padding,
+          height: height,
+          child: DropdownButtonFormField<String>(
+            value: selectedRole,
+            items: ['User', 'Engineer'].map((String role) {
+              return DropdownMenuItem<String>(
+                value: role,
+                child: Text(role),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedRole = value!;
+                widget.createRoleController.text = value;
+              });
+            },
+            decoration: InputDecoration(
+              labelText: 'Role',
+              floatingLabelBehavior: FloatingLabelBehavior.never,
+            ),
+          ),
         ),
-      ),
       Container(
-        padding: padding,
-        margin: EdgeInsets.only(top: 10),
-        height: height,
-        child: Center(
-          child: ElevatedButton(
-            onPressed: () async {
-            await widget.createAccount();
-          widget.onCreateUser();
-          },
+  padding: padding,
+  margin: EdgeInsets.only(top: 10),
+  height: height,
+  child: Center(
+    child: ElevatedButton(
+      onPressed: () async {
+        // Hibakezelés a felhasználónévre
+        String? usernameError = validateUsername(widget.createUsernameController.text);
+        if (usernameError != null) {
+          // Ha van hiba a felhasználónévben, mutass hibaüzenetet és ne folytasd tovább
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(usernameError),
+              duration: Duration(seconds: 5),
+            ),
+          );
+          return;
+        }
+
+        // Ellenőrizze, hogy van-e már ilyen felhasználónév az adatbázisban
+        bool isUsernameTaken = await checkIfUsernameExists(widget.createUsernameController.text);
+        if (isUsernameTaken) {
+          // Ha a felhasználónév már foglalt, mutass hibaüzenetet és ne folytasd tovább
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('This username is already exist!'),
+              duration: Duration(seconds: 5),
+            ),
+          );
+          return;
+        }
+
+        // Hibakezelés a jelszóra
+        String? passwordError = validatePassword(widget.createPinController.text);
+        if (passwordError != null) {
+          // Ha van hiba a jelszóban, mutass hibaüzenetet és ne folytasd tovább
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(passwordError),
+              duration: Duration(seconds: 5),
+            ),
+          );
+          return;
+        }
+
+        // Fiók létrehozása, ha minden rendben van
+        await widget.createAccount();
+        widget.onCreateUser();
+      },
       style: ElevatedButton.styleFrom(
-        primary: Colors.blue, // Change button color to blue
+        primary: Colors.blue,
       ),
       child: Text(
         'Create',
-        style: TextStyle(fontSize: 18), // Increase font size
+        style: TextStyle(fontSize: 18),
       ),
-      ),
-      ),
-      ),
-    ],
-  );
-}
+    ),
+  ),
+),
+      ],
+    );
+  }
   
+String? validateUsername(String username) {
+  if (username.isEmpty) {
+    return 'Username is required';
+  } else if (!RegExp(r'^[a-zA-Z]*$').hasMatch(username)) {
+    return 'Username can only contain English letters';
+  }
+  return null;
+}
+
+String? validatePassword(String password) {
+  if (password.isEmpty) {
+    return 'Password is required';
+  } else if (password.length < 4) {
+    return 'Password must be at least 4 characters long';
+  } else if (!RegExp(r'^[a-zA-Z0-9]*$').hasMatch(password)) {
+    return 'Password can only contain English letters and numbers';
+  }
+  return null;
+}
+
+bool checkIfUsernameExists(String desiredUsername) {
+  for (Map<String, dynamic> userData in tableData) {
+    if (userData['Username'] == desiredUsername) {
+      return true;
+    }
+  }
+  return false;
+}
+
   }
